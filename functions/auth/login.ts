@@ -28,26 +28,78 @@ export async function onRequestPost(context: {
       );
     }
 
-    /*
-      Connexion future avec Cloudflare D1
+    // Recherche de l'utilisateur
+    const user = await context.env.DB
+      .prepare(`
+        SELECT
+          id,
+          email,
+          password_hash,
+          full_name,
+          role,
+          status
+        FROM users
+        WHERE email = ?
+      `)
+      .bind(email)
+      .first();
 
-      Exemple :
-      const user = await context.env.DB
-        .prepare("SELECT * FROM utilisateur WHERE email = ?")
-        .bind(email)
-        .first();
+    if (!user) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Email ou mot de passe incorrect"
+        }),
+        {
+          status: 401,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
 
-      Vérification du mot de passe ici
-    */
+    // Vérification du mot de passe
+    if (user.password_hash !== password) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Email ou mot de passe incorrect"
+        }),
+        {
+          status: 401,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
 
+    // Vérification du statut du compte
+    if (user.status !== "active") {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Votre compte est désactivé"
+        }),
+        {
+          status: 403,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
 
-    // Réponse temporaire de test
     return new Response(
       JSON.stringify({
         success: true,
         message: "Connexion réussie",
         user: {
-          email: email
+          id: user.id,
+          nom: user.full_name,
+          email: user.email,
+          role: user.role
         }
       }),
       {
@@ -58,9 +110,7 @@ export async function onRequestPost(context: {
       }
     );
 
-
   } catch (err: any) {
-
     return new Response(
       JSON.stringify({
         success: false,
