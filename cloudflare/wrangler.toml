@@ -1,30 +1,61 @@
-name = "imhotep-memoires"
+name = "gem-plateforme"
+
 main = "functions/_middleware.ts"
+
 compatibility_date = "2026-07-28"
+
+
 
 # Configuration Cloudflare Pages & Workers
 
+
+
 [vars]
+
 ENVIRONMENT = "production"
+
 APP_NAME = "IMHOTEP MÉMOIRES"
-APP_URL = "https://imhotep-memoires.pages.dev"
+
+APP_URL = "https://gem-plateforme.pages.dev"
+
 MAX_PDF_SIZE_MB = "25"
 
-# Binding Base de données Cloudflare D1
-[[d1_databases]]
-binding = "DB"
-database_name = "imhotep_memoires_db"
-database_id = "d1-imhotep-memoires-prod-uuid-001"
 
-# Binding Stockage d'objets Cloudflare R2
+
+# Base de données Cloudflare D1
+
+[[d1_databases]]
+
+binding = "DB"
+
+database_name = "gem-plateforme-bd"
+
+database_id = "0dffe8ab-c92e-42cd-887f-35b7767c9873"
+
+
+
+# Stockage Cloudflare R2 pour les mémoires PDF
+
 [[r2_buckets]]
+
 binding = "BUCKET_MEMOIRES"
+
 bucket_name = "imhotep-memoires-pdfs"
 
+
+
+# Stockage Cloudflare R2 pour les certificats
+
 [[r2_buckets]]
+
 binding = "BUCKET_CERTIFICATES"
+
 bucket_name = "imhotep-memoires-certificates"
 
-# Binding AI Cloudflare (ou Workers AI / Gemini integration)
+
+
+# Cloudflare Workers AI
+
 [ai]
+
 binding = "AI"
