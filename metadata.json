@@ -1,0 +1,6 @@
+{
+  "name": "Mémoire Universitaire",
+  "description": "Plateforme intelligente de gestion, d'analyse IA et de valorisation des mémoires académiques",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
