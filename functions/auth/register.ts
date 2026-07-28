@@ -14,7 +14,6 @@ export async function onRequestPost(context: {
 
     const { nom, email, password, role } = body;
 
-    // Vérification des champs obligatoires
     if (!nom || !email || !password || !role) {
       return new Response(
         JSON.stringify({
@@ -30,33 +29,54 @@ export async function onRequestPost(context: {
       );
     }
 
-    /*
-      Connexion future avec Cloudflare D1
+    // Vérifier si l'utilisateur existe déjà
+    const existingUser = await context.env.DB
+      .prepare("SELECT id FROM users WHERE email = ?")
+      .bind(email)
+      .first();
 
-      Exemple :
+    if (existingUser) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Cet email est déjà utilisé"
+        }),
+        {
+          status: 409,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
 
-      await context.env.DB.prepare(
-        `INSERT INTO utilisateur
-        (nom, email, password, role)
-        VALUES (?, ?, ?, ?)`
-      )
+    // Générer un identifiant
+    const id = crypto.randomUUID();
+
+    // À remplacer plus tard par un vrai hash (bcrypt/argon2)
+    const password_hash = password;
+
+    await context.env.DB
+      .prepare(`
+        INSERT INTO users
+        (id, email, password_hash, full_name, role)
+        VALUES (?, ?, ?, ?, ?)
+      `)
       .bind(
-        nom,
+        id,
         email,
-        password,
+        password_hash,
+        nom,
         role
       )
       .run();
 
-    */
-
-
-    // Réponse temporaire de test
     return new Response(
       JSON.stringify({
         success: true,
         message: "Inscription réussie",
         user: {
+          id,
           nom,
           email,
           role
@@ -70,9 +90,7 @@ export async function onRequestPost(context: {
       }
     );
 
-
   } catch (err: any) {
-
     return new Response(
       JSON.stringify({
         success: false,
