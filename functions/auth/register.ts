@@ -6,19 +6,35 @@ export async function onRequestPost(context: {
 }) {
   try {
     const body = await context.request.json() as {
-      nom?: string;
+      fullName?: string;
       email?: string;
       password?: string;
       role?: string;
+      university?: string;
+      filiere?: string;
+      niveau?: string;
+      matricule?: string;
+      phone?: string;
     };
 
-    const { nom, email, password, role } = body;
+    const {
+      fullName,
+      email,
+      password,
+      role,
+      university,
+      filiere,
+      niveau,
+      matricule,
+      phone
+    } = body;
 
-    if (!nom || !email || !password || !role) {
+    // Vérification des champs obligatoires
+    if (!fullName || !email || !password || !role) {
       return new Response(
         JSON.stringify({
           success: false,
-          message: "Tous les champs sont obligatoires"
+          message: "Tous les champs obligatoires doivent être renseignés."
         }),
         {
           status: 400,
@@ -39,7 +55,7 @@ export async function onRequestPost(context: {
       return new Response(
         JSON.stringify({
           success: false,
-          message: "Cet email est déjà utilisé"
+          message: "Cet email est déjà utilisé."
         }),
         {
           status: 409,
@@ -50,36 +66,61 @@ export async function onRequestPost(context: {
       );
     }
 
-    // Générer un identifiant
+    // Génération de l'identifiant
     const id = crypto.randomUUID();
 
-    // À remplacer plus tard par un vrai hash (bcrypt/argon2)
+    // À remplacer par un vrai hachage (bcrypt/argon2) en production
     const password_hash = password;
 
+    // Enregistrement dans D1
     await context.env.DB
       .prepare(`
-        INSERT INTO users
-        (id, email, password_hash, full_name, role)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO users (
+          id,
+          email,
+          password_hash,
+          full_name,
+          role,
+          university,
+          filiere,
+          niveau,
+          matricule,
+          phone
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .bind(
         id,
         email,
         password_hash,
-        nom,
-        role
+        fullName,
+        role,
+        university ?? "Université d'Abomey-Calavi (UAC)",
+        filiere ?? null,
+        niveau ?? null,
+        matricule ?? null,
+        phone ?? null
       )
       .run();
+
+    // Jeton temporaire (à remplacer plus tard par un vrai JWT)
+    const token = crypto.randomUUID();
 
     return new Response(
       JSON.stringify({
         success: true,
-        message: "Inscription réussie",
+        message: "Inscription réussie.",
+        token,
         user: {
           id,
-          nom,
+          fullName,
           email,
-          role
+          role,
+          university,
+          filiere,
+          niveau,
+          matricule,
+          phone
         }
       }),
       {
@@ -91,10 +132,12 @@ export async function onRequestPost(context: {
     );
 
   } catch (err: any) {
+    console.error(err);
+
     return new Response(
       JSON.stringify({
         success: false,
-        message: err?.message || "Erreur serveur"
+        message: err?.message || "Erreur interne du serveur."
       }),
       {
         status: 500,
@@ -104,4 +147,4 @@ export async function onRequestPost(context: {
       }
     );
   }
-}
+      }
