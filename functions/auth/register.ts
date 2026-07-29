@@ -29,7 +29,6 @@ export async function onRequestPost(context: {
       phone
     } = body;
 
-    // Vérification des champs obligatoires
     if (!fullName || !email || !password || !role) {
       return new Response(
         JSON.stringify({
@@ -45,7 +44,6 @@ export async function onRequestPost(context: {
       );
     }
 
-    // Vérifier si l'utilisateur existe déjà
     const existingUser = await context.env.DB
       .prepare("SELECT id FROM users WHERE email = ?")
       .bind(email)
@@ -66,13 +64,11 @@ export async function onRequestPost(context: {
       );
     }
 
-    // Génération de l'identifiant
     const id = crypto.randomUUID();
 
-    // À remplacer par un vrai hachage (bcrypt/argon2) en production
+    // À remplacer par bcrypt/argon2 plus tard
     const password_hash = password;
 
-    // Enregistrement dans D1
     await context.env.DB
       .prepare(`
         INSERT INTO users (
@@ -103,7 +99,6 @@ export async function onRequestPost(context: {
       )
       .run();
 
-    // Jeton temporaire (à remplacer plus tard par un vrai JWT)
     const token = crypto.randomUUID();
 
     return new Response(
@@ -132,7 +127,7 @@ export async function onRequestPost(context: {
     );
 
   } catch (err: any) {
-    console.error(err);
+    console.error("REGISTER ERROR:", err);
 
     return new Response(
       JSON.stringify({
@@ -147,4 +142,4 @@ export async function onRequestPost(context: {
       }
     );
   }
-      }
+}
