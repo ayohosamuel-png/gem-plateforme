@@ -12,12 +12,11 @@ export async function onRequestPost(context: {
 
     const { email, password } = body;
 
-    // Vérification des champs obligatoires
     if (!email || !password) {
       return new Response(
         JSON.stringify({
           success: false,
-          message: "Email et mot de passe requis"
+          message: "Email et mot de passe requis."
         }),
         {
           status: 400,
@@ -35,6 +34,111 @@ export async function onRequestPost(context: {
           id,
           email,
           password_hash,
+          full_name,
+          role,
+          university,
+          filiere,
+          niveau,
+          matricule,
+          phone,
+          status
+        FROM users
+        WHERE email = ?
+      `)
+      .bind(email)
+      .first();
+
+    if (!user) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Email ou mot de passe incorrect."
+        }),
+        {
+          status: 401,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
+
+    // Vérification du mot de passe
+    if (user.password_hash !== password) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Email ou mot de passe incorrect."
+        }),
+        {
+          status: 401,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
+
+    if (user.status !== "active") {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: "Votre compte est désactivé."
+        }),
+        {
+          status: 403,
+          headers: {
+            "Content-Type": "application/json"
+          }
+        }
+      );
+    }
+
+    // Jeton temporaire
+    const token = crypto.randomUUID();
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: "Connexion réussie.",
+        token,
+        user: {
+          id: user.id,
+          fullName: user.full_name,
+          email: user.email,
+          role: user.role,
+          university: user.university,
+          filiere: user.filiere,
+          niveau: user.niveau,
+          matricule: user.matricule,
+          phone: user.phone
+        }
+      }),
+      {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    );
+
+  } catch (err: any) {
+    console.error(err);
+
+    return new Response(
+      JSON.stringify({
+        success: false,
+        message: err?.message || "Erreur interne du serveur."
+      }),
+      {
+        status: 500,
+        headers: {
+          "Content-Type": "application/json"
+        }
+      }
+    );
+  }
+}          password_hash,
           full_name,
           role,
           status
